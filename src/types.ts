@@ -4,4 +4,5 @@ export interface Project {
     description: string;
     capacity: number;
     currentCount: number;
+    users: string[];
 }
