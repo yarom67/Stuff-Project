@@ -62,36 +62,57 @@ export default function ProjectList() {
     const [userName, setUserName] = useState<string>('');
     const [isModalOpen, setIsModalOpen] = useState(true);
 
+    // Poll for updates
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const res = await fetch('/api/projects');
+                if (res.ok) {
+                    const data = await res.json();
+                    setProjects(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch projects:', error);
+            }
+        };
+
+        fetchProjects();
+        const interval = setInterval(fetchProjects, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     const handleNameSubmit = (name: string) => {
         setUserName(name);
         setIsModalOpen(false);
     };
 
-    const handleJoin = (projectId: string) => {
+    const handleJoin = async (projectId: string) => {
         if (!userName) return;
 
-        if (joinedProjectId === projectId) {
-            // Leave project
-            setProjects(prev => prev.map(p =>
-                p.id === projectId ? {
-                    ...p,
-                    currentCount: p.currentCount - 1,
-                    users: p.users.filter(u => u !== userName)
-                } : p
-            ));
-            setJoinedProjectId(null);
-        } else {
-            // Join project
-            if (joinedProjectId) return; // Already joined another project
+        const action = joinedProjectId === projectId ? 'leave' : 'join';
 
-            setProjects(prev => prev.map(p =>
-                p.id === projectId ? {
-                    ...p,
-                    currentCount: p.currentCount + 1,
-                    users: [...p.users, userName]
-                } : p
-            ));
-            setJoinedProjectId(projectId);
+        try {
+            const res = await fetch('/api/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ projectId, userName, action }),
+            });
+
+            if (res.ok) {
+                const updatedProjects = await res.json();
+                setProjects(updatedProjects);
+                if (action === 'join') {
+                    setJoinedProjectId(projectId);
+                } else {
+                    setJoinedProjectId(null);
+                }
+            } else {
+                const errorData = await res.json();
+                alert(errorData.error); // Simple error handling
+            }
+        } catch (error) {
+            console.error('Failed to update project:', error);
         }
     };
 
