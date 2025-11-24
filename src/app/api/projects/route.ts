@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getProjects, setProjects } from '../../../lib/store';
+import { getProjectsDB, saveProjectsDB } from '../../../lib/db';
 
 export async function GET() {
-    const projects = getProjects();
-    // console.log('GET /api/projects:', projects.map(p => p.currentCount));
+    const projects = await getProjectsDB();
     return NextResponse.json(projects);
 }
 
@@ -12,7 +11,7 @@ export async function POST(request: Request) {
     const { projectId, userName, action } = body;
 
     // Get current state
-    const currentProjects = getProjects();
+    const currentProjects = await getProjectsDB();
 
     // Create a deep copy to avoid direct mutation issues
     let projects = JSON.parse(JSON.stringify(currentProjects));
@@ -72,7 +71,7 @@ export async function POST(request: Request) {
     }
 
     // Save the updated state
-    setProjects(projects);
+    await saveProjectsDB(projects);
 
     return NextResponse.json(projects);
 }
