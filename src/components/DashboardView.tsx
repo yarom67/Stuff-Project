@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Project } from '../types';
 
 export default function DashboardView() {
@@ -40,7 +41,18 @@ export default function DashboardView() {
 
     return (
         <div className="p-8">
-            <h2 className="text-3xl font-bold text-center mb-12 text-black">לוח בקרה - מצב פרויקטים בזמן אמת</h2>
+            <div className="flex justify-center mb-[50px]">
+                <div className="relative w-[350px] max-w-full h-[150px]">
+                    <Image
+                        src="/logo.png"
+                        alt="Logo"
+                        fill
+                        className="object-contain"
+                        priority
+                    />
+                </div>
+            </div>
+            {/* <h2 className="text-3xl font-bold text-center mb-12 text-black">לוח בקרה - מצב פרויקטים בזמן אמת</h2> */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {projects.map((project) => (
                     <div key={project.id} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100 relative overflow-hidden">

@@ -1,5 +1,21 @@
 import { NextResponse } from 'next/server';
 import { getProjectsDB, saveProjectsDB } from '../../../lib/db';
+import { Project } from '../../../types';
+
+// Helper to verify admin password
+const verifyAdmin = (request: Request) => {
+    const adminPassword = request.headers.get('x-admin-password');
+    const envPassword = process.env.ADMIN_PASSWORD;
+
+    // In development, if no password is set in .env, allow access (hassle-free local dev)
+    if (!envPassword && process.env.NODE_ENV === 'development') {
+        return true;
+    }
+
+    // If no password set in env (and not dev), deny access for safety
+    if (!envPassword) return false;
+    return adminPassword === envPassword;
+};
 
 export async function GET() {
     const projects = await getProjectsDB();
@@ -8,13 +24,56 @@ export async function GET() {
 
 export async function POST(request: Request) {
     const body = await request.json();
-    const { projectId, userName, action } = body;
+    const { projectId, userName, action, projectData } = body;
 
     // Get current state
     const currentProjects = await getProjectsDB();
 
     // Create a deep copy to avoid direct mutation issues
     let projects = JSON.parse(JSON.stringify(currentProjects));
+
+    // --- ADMIN ACTIONS ---
+    if (action === 'create' || action === 'update' || action === 'delete' || action === 'reset') {
+
+        if (!verifyAdmin(request)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        if (action === 'create') {
+            const newProject: Project = {
+                id: Date.now().toString(), // Simple ID generation
+                name: projectData.name,
+                description: projectData.description,
+                capacity: parseInt(projectData.capacity),
+                currentCount: 0,
+                users: []
+            };
+            projects.push(newProject);
+        } else if (action === 'update') {
+            const index = projects.findIndex((p: any) => p.id === projectId);
+            if (index !== -1) {
+                projects[index] = {
+                    ...projects[index],
+                    name: projectData.name,
+                    description: projectData.description,
+                    capacity: parseInt(projectData.capacity)
+                };
+            }
+        } else if (action === 'delete') {
+            projects = projects.filter((p: any) => p.id !== projectId);
+        } else if (action === 'reset') {
+            projects = projects.map((p: any) => ({
+                ...p,
+                currentCount: 0,
+                users: []
+            }));
+        }
+
+        await saveProjectsDB(projects);
+        return NextResponse.json(projects);
+    }
+
+    // --- USER ACTIONS ---
 
     if (!projectId || !userName || !action) {
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
