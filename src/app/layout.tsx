@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl">
+    <html lang="he" dir="rtl" suppressHydrationWarning>
       <body className={`${heebo.variable} font-sans antialiased bg-gray-50 text-gray-900`}>
         {children}
       </body>

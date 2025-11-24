@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { getProjects, setProjects } from '../../../lib/store';
 
 export async function GET() {
-    return NextResponse.json(getProjects());
+    const projects = getProjects();
+    // console.log('GET /api/projects:', projects.map(p => p.currentCount));
+    return NextResponse.json(projects);
 }
 
 export async function POST(request: Request) {

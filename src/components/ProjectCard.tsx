@@ -20,7 +20,7 @@ export default function ProjectCard({ project, onJoin, isJoined, isLocked }: Pro
                     {project.currentCount} / {project.capacity}
                 </span>
             </div>
-            <p className="text-gray-600 mb-6">{project.description}</p>
+            <p className="text-gray-800 mb-6 font-medium">{project.description}</p>
             <button
                 onClick={() => onJoin(project.id)}
                 disabled={isDisabled}

@@ -55,7 +55,10 @@ const INITIAL_PROJECTS: Project[] = [
 const globalStore = globalThis as unknown as { projects: Project[] };
 
 if (!globalStore.projects) {
+    console.log('--- INITIALIZING GLOBAL STORE ---');
     globalStore.projects = INITIAL_PROJECTS;
+} else {
+    console.log('--- USING EXISTING GLOBAL STORE ---');
 }
 
 export const getProjects = () => globalStore.projects;
