@@ -6,9 +6,10 @@ interface ProjectCardProps {
     onJoin: (projectId: string) => void;
     isJoined: boolean;
     isLocked: boolean;
+    readOnly?: boolean;
 }
 
-export default function ProjectCard({ project, onJoin, isJoined, isLocked }: ProjectCardProps) {
+export default function ProjectCard({ project, onJoin, isJoined, isLocked, readOnly = false }: ProjectCardProps) {
     const isFull = project.currentCount >= project.capacity;
     const isDisabled = isFull || (isLocked && !isJoined);
 
@@ -21,19 +22,26 @@ export default function ProjectCard({ project, onJoin, isJoined, isLocked }: Pro
                 </span>
             </div>
             <p className="text-gray-800 mb-6 font-medium">{project.description}</p>
-            <button
-                onClick={() => onJoin(project.id)}
-                disabled={isDisabled}
-                className={`w-full py-2 px-4 rounded-md font-medium transition-colors
+            {!readOnly && (
+                <button
+                    onClick={() => onJoin(project.id)}
+                    disabled={isDisabled}
+                    className={`w-full py-2 px-4 rounded-md font-medium transition-colors
           ${isJoined
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : isDisabled
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-gray-900 text-white hover:bg-gray-800'
-                    }`}
-            >
-                {isJoined ? 'Joined' : isFull ? 'Full' : 'Join Project'}
-            </button>
+                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                            : isDisabled
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-gray-900 text-white hover:bg-gray-800'
+                        }`}
+                >
+                    {isJoined ? 'Joined' : isFull ? 'Full' : 'Join Project'}
+                </button>
+            )}
+            {readOnly && isJoined && (
+                <div className="w-full py-2 px-4 rounded-md font-medium text-center bg-blue-100 text-blue-800">
+                    Joined
+                </div>
+            )}
         </div>
     );
 }

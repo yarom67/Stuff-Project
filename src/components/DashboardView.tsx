@@ -13,7 +13,13 @@ export default function DashboardView() {
                 const res = await fetch('/api/projects');
                 if (res.ok) {
                     const data = await res.json();
-                    setProjects(data);
+                    setProjects(prevProjects => {
+                        // Simple deep comparison to avoid unnecessary re-renders (flickering)
+                        if (JSON.stringify(prevProjects) === JSON.stringify(data)) {
+                            return prevProjects;
+                        }
+                        return data;
+                    });
                 }
             } catch (error) {
                 console.error('Failed to fetch projects:', error);

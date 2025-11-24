@@ -56,11 +56,35 @@ const INITIAL_PROJECTS: Project[] = [
     },
 ];
 
-export default function ProjectList() {
+export default function ProjectList({ readOnly = false }: { readOnly?: boolean }) {
     const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
     const [joinedProjectId, setJoinedProjectId] = useState<string | null>(null);
     const [userName, setUserName] = useState<string>('');
-    const [isModalOpen, setIsModalOpen] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(!readOnly);
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    // Load state from localStorage on mount
+    useEffect(() => {
+        if (readOnly) {
+            setIsModalOpen(false);
+            setIsLoaded(true);
+            return;
+        }
+
+        const storedName = localStorage.getItem('userName');
+        const storedProjectId = localStorage.getItem('joinedProjectId');
+
+        if (storedName) {
+            setUserName(storedName);
+            setIsModalOpen(false);
+        }
+
+        if (storedProjectId) {
+            setJoinedProjectId(storedProjectId);
+        }
+
+        setIsLoaded(true);
+    }, [readOnly]);
 
     // Poll for updates
     useEffect(() => {
@@ -84,10 +108,12 @@ export default function ProjectList() {
 
     const handleNameSubmit = (name: string) => {
         setUserName(name);
+        localStorage.setItem('userName', name);
         setIsModalOpen(false);
     };
 
     const handleJoin = async (projectId: string) => {
+        if (readOnly) return;
         if (!userName) return;
 
         const action = joinedProjectId === projectId ? 'leave' : 'join';
@@ -104,8 +130,10 @@ export default function ProjectList() {
                 setProjects(updatedProjects);
                 if (action === 'join') {
                     setJoinedProjectId(projectId);
+                    localStorage.setItem('joinedProjectId', projectId);
                 } else {
                     setJoinedProjectId(null);
+                    localStorage.removeItem('joinedProjectId');
                 }
             } else {
                 const errorData = await res.json();
@@ -116,9 +144,11 @@ export default function ProjectList() {
         }
     };
 
+    if (!isLoaded) return null; // Prevent hydration mismatch
+
     return (
         <>
-            <NameModal isOpen={isModalOpen} onSubmit={handleNameSubmit} />
+            {!readOnly && <NameModal isOpen={isModalOpen} onSubmit={handleNameSubmit} />}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {projects.map(project => (
                     <ProjectCard
@@ -126,7 +156,8 @@ export default function ProjectList() {
                         project={project}
                         onJoin={handleJoin}
                         isJoined={joinedProjectId === project.id}
-                        isLocked={joinedProjectId !== null}
+                        isLocked={(!readOnly && joinedProjectId !== null) || (readOnly)} // Lock if user joined one, or if dashboard
+                        readOnly={readOnly}
                     />
                 ))}
             </div>
