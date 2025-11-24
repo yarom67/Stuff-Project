@@ -32,11 +32,30 @@ export default function AdminPage() {
         }
     }, [isAuthenticated]);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simple client-side check to avoid unnecessary API calls, 
-        // but real security is on the server
-        if (password) setIsAuthenticated(true);
+        setLoading(true);
+        try {
+            const res = await fetch('/api/projects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-password': password
+                },
+                body: JSON.stringify({ action: 'verify', projectId: 'auth-check', userName: 'admin' }),
+            });
+
+            if (res.ok) {
+                setIsAuthenticated(true);
+            } else {
+                alert('סיסמה שגויה');
+            }
+        } catch (error) {
+            console.error('Login failed:', error);
+            alert('שגיאה בהתחברות');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleAction = async (action: string, projectId?: string, data?: any) => {

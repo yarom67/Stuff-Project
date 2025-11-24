@@ -33,6 +33,13 @@ export async function POST(request: Request) {
     let projects = JSON.parse(JSON.stringify(currentProjects));
 
     // --- ADMIN ACTIONS ---
+    if (action === 'verify') {
+        if (!verifyAdmin(request)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        return NextResponse.json({ success: true });
+    }
+
     if (action === 'create' || action === 'update' || action === 'delete' || action === 'reset') {
 
         if (!verifyAdmin(request)) {
