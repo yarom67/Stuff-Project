@@ -63,6 +63,7 @@ export default function DashboardView() {
                                 <span className="text-lg font-bold">{project.currentCount}</span>
                             </div>
                         </div>
+                        <p className="text-gray-800 mb-6 font-medium">{project.description}</p>
                         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6">
                             <div
                                 className={`h-2.5 rounded-full ${project.currentCount >= project.capacity ? 'bg-red-500' : 'bg-blue-500'}`}
